@@ -14,16 +14,14 @@ return [
     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
     */
-'paths' => ['api/*'],
 
+
+  'paths' => ['api/*'],
     'allowed_methods' => ['*'],
-
     'allowed_origins' => [
-        'http://localhost:5173',
-        'https://applicationform-frontend.onrender.com', // if deployed later
+        'http://localhost:5173', // dev
+        'https://application-form-frontend.onrender.com', // production
     ],
-
     'allowed_headers' => ['*'],
-
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 ];
