@@ -12,9 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+
     ->withMiddleware(function (Middleware $middleware) {
+        // Trust all proxies, as Render's proxy IPs can change.
+        $middleware->trustProxies(at: '*');
+
         $middleware->append(HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+
+    

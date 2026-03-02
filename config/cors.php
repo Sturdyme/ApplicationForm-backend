@@ -17,7 +17,7 @@ return [
 
      'paths' => ['api/*'],                  // Apply to API routes
     'allowed_methods' => ['*'],            // Allow POST, GET, etc.
-    'allowed_origins' => ['http://localhost:5173'], // React front-end
+    'allowed_origins' => explode(',', env('FRONTEND_URL', 'http://localhost:5173')),
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],            // Allow all headers
     'exposed_headers' => [],

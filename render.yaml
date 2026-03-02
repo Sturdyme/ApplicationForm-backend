@@ -3,7 +3,7 @@ services:
     name: application-form
     env: php
     buildCommand: composer install --no-dev --optimize-autoloader
-    startCommand: heroku-php-apache2 public/
+    startCommand: php artisan migrate --force && heroku-php-apache2 public/
     envVars:
       - key: APP_KEY
         generateValue: true
@@ -11,3 +11,14 @@ services:
         value: production
       - key: APP_DEBUG
         value: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: application-db
+          property: connectionString
+
+databases:
+  - name: application-db
+    databaseName: application_form
+    user: laravel
