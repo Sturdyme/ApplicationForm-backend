@@ -14,13 +14,16 @@ return [
     | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
     */
+'paths' => ['api/*'],
 
-     'paths' => ['api/*'],                  // Apply to API routes
-    'allowed_methods' => ['*'],            // Allow POST, GET, etc.
-    'allowed_origins' => array_unique(array_filter(explode(',', env('FRONTEND_URL', 'http://localhost:5173')))),
-    'allowed_origins_patterns' => [],
-    'allowed_headers' => ['*'],            // Allow all headers
-    'exposed_headers' => [],
-    'max_age' => 0,
+    'allowed_methods' => ['*'],
+
+    'allowed_origins' => [
+        'http://localhost:5173',
+        'https://applicationform-frontend.onrender.com', // if deployed later
+    ],
+
+    'allowed_headers' => ['*'],
+
     'supports_credentials' => false,
 ];
