@@ -2,7 +2,7 @@ services:
   - type: web
     name: application-form
     env: php
-    buildCommand: composer install --no-dev --optimize-autoloader
+    buildCommand: php artisan config:clear && composer install --no-dev --optimize-autoloader
     startCommand: php artisan migrate --force && heroku-php-apache2 public/
     envVars:
       - key: APP_KEY
