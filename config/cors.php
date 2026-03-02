@@ -23,5 +23,5 @@ return [
         'https://application-form-frontend.onrender.com', // production
     ],
     'allowed_headers' => ['*'],
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 ];
