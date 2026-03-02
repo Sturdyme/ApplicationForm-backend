@@ -23,6 +23,8 @@ class Application extends Model
         'zip',
         'license_path',
         'resume_path',
-        'terms_accepted'
+        'signature',
+        'terms_accepted',
+
     ];
 }

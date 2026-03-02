@@ -25,8 +25,9 @@ return new class extends Migration
             $table->string('state');
             $table->string('zip');
             $table->string('license_path');
+            $table->longText('signature');
             $table->string('resume_path')->nullable();
-            $table->boolean('terms_accepted');
+            $table->boolean('terms_accepted')->default(false);
 
             $table->timestamps();
         });
