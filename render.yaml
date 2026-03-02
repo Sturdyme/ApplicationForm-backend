@@ -9,7 +9,7 @@ services:
         generateValue: true
       - key: APP_ENV
         value: production
-git      - key: APP_URL
+      - key: APP_URL
         value: ${RENDER_EXTERNAL_URL}
       - key: APP_DEBUG
         value: false
