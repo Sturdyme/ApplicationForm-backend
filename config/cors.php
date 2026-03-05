@@ -22,6 +22,6 @@ return [
         'http://localhost:5173', // dev
         'https://application-form-frontend.onrender.com', // production
     ],
-    'allowed_headers' => ['*'],
+    'allowed_headers' => ['Content-Type', 'X-Requested-With', 'Authorization', 'Accept'],
     'supports_credentials' => false,
 ];
