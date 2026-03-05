@@ -19,8 +19,9 @@ return [
   'paths' => ['api/*'],
     'allowed_methods' => ['*'],
     'allowed_origins' => [
-        'http://localhost:5173', // dev
         'https://application-form-frontend.onrender.com', // production
+        'https://application-form-frontend.onrender.com/',
+        'http://localhost:5173', // dev
     ],
     'allowed_headers' => ['Content-Type', 'X-Requested-With', 'Authorization', 'Accept'],
     'supports_credentials' => false,
