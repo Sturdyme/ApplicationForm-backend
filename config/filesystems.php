@@ -29,6 +29,9 @@ return [
     */
 
     'disks' => [
+        'cloudinary' => [
+        'driver' => 'cloudinary'
+        ],
 
         'local' => [
             'driver' => 'local',
@@ -59,6 +62,7 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        
 
     ],
 

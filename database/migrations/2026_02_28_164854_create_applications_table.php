@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('city');
             $table->string('state');
             $table->string('zip');
-            $table->string('license_path')->nullable();
+            $table->text('license_path')->nullable();
             $table->longText('signature');
             $table->string('resume_path')->nullable();
             $table->boolean('terms_accepted')->default(false);
