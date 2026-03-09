@@ -43,10 +43,11 @@ class ApplicationController extends Controller
         ]);
 
         // 3. Handle File Uploads
-        $licensePath = $request->file('drivers_license')->store('licenses', 'public');
-        $resumePath = $request->hasFile('resume_file') 
-            ? $request->file('resume_file')->store('resumes', 'public') 
-            : null;
+       $licensePath = $request->file('drivers_license')->store('licenses', 'cloudinary');
+
+     $resumePath = $request->hasFile('resume_file') 
+    ? $request->file('resume_file')->store('resumes', 'cloudinary') 
+    : null;
 
         // 4. Create Record
         $application = Application::create([
