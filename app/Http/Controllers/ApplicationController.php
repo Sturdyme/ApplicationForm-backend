@@ -6,6 +6,7 @@ use App\Models\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
 {
@@ -43,10 +44,10 @@ class ApplicationController extends Controller
         ]);
 
         // 3. Handle File Uploads
-       $licensePath = $request->file('drivers_license')->store('licenses', 'cloudinary');
+       $licensePath = $request->file('drivers_license')->store('licenses', 'public');
 
      $resumePath = $request->hasFile('resume_file') 
-    ? $request->file('resume_file')->store('resumes', 'cloudinary') 
+    ? $request->file('resume_file')->store('resumes', 'public') 
     : null;
 
         // 4. Create Record
