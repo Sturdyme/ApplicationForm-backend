@@ -4,66 +4,87 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 
 class ApplicationController extends Controller
 {
   public function store(Request $request)
 {
-    // 1. Validation - Match the keys used in React's formData.append()
-    $request->validate([
-        'first_name' => 'required|string',
-        'last_name'  => 'required|string',
-        'email'      => 'required|email',
-        'dob'        => 'required|string',
-        'phone'      => 'required|string',
-        'position'   => 'required|string',
-        'employment' => 'required|string',
-        'address'    => 'required|string',
-        'city'       => 'required|string',
-        'state'      => 'required|string',
-        'zip'        => 'required|string', // Changed from zipcode to zip
-        'drivers_license' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
-        'resume_file'     => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-        'terms_accepted'  => 'required', // '1' or '0' from React
-        'signature'       => 'required|string' 
-    ]);
+  $key = 'application-submission:' . $request->ip();
 
-    // 2. Handle File Uploads (Drivers License)
-    $licensePath = $request->file('drivers_license')->store('licenses', 'public');
-
-    // Handle Optional Resume
-    $resumePath = null;
-    if ($request->hasFile('resume_file')) {
-        $resumePath = $request->file('resume_file')->store('resumes', 'public');
+    // 1. Check if they are already locked out
+    if (RateLimiter::tooManyAttempts($key, 3)) {
+        $seconds = RateLimiter::availableIn($key);
+        return response()->json([
+            'message' => "Too many attempts. Please try again in " . ceil($seconds / 60) . " minutes.",
+            'retry_after' => $seconds
+        ], 429);
     }
 
-    // 3. Handle the Signature (Optional: Save as File instead of long string)
-    // If you want to keep the string, just use $request->signature.
-    // If you want to save as PNG, use the base64_decode logic we discussed.
-    $signatureData = $request->signature; 
+    try {
+        // 2. Validation
+        $request->validate([
+            'first_name' => 'required|string',
+            'last_name'  => 'required|string',
+            'email'      => 'required|email',
+            'dob'        => 'required|string',
+            'phone'      => 'required|string',
+            'position'   => 'required|string',
+            'employment' => 'required|string',
+            'address'    => 'required|string',
+            'city'       => 'required|string',
+            'state'      => 'required|string',
+            'zip'        => 'required|string',
+            'drivers_license' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'resume_file'     => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'terms_accepted'  => 'required',
+            'signature'       => 'required|string' 
+        ]);
 
-    // 4. Create Record
-    $application = Application::create([
-        'first_name'     => $request->first_name,
-        'last_name'      => $request->last_name,
-        'email'          => $request->email,
-        'dob'            => $request->dob,
-        'phone'          => $request->phone,
-        'position'       => $request->position,
-        'employment'     => $request->employment,
-        'address'        => $request->address,
-        'city'           => $request->city,
-        'state'          => $request->state,
-        'zip'            => $request->zip,
-        'license_path'   => $licensePath,
-        'resume_path'    => $resumePath,
-        'signature'      => $signatureData, 
-        'terms_accepted' => $request->terms_accepted == '1', 
-    ]);
+        // 3. Handle File Uploads
+        $licensePath = $request->file('drivers_license')->store('licenses', 'public');
+        $resumePath = $request->hasFile('resume_file') 
+            ? $request->file('resume_file')->store('resumes', 'public') 
+            : null;
 
-    return response()->json([
-        'message' => "Application submitted successfully",
-        'id'      => $application->id
-    ], 201);
+        // 4. Create Record
+        $application = Application::create([
+            'first_name'     => $request->first_name,
+            'last_name'      => $request->last_name,
+            'email'          => $request->email,
+            'dob'            => $request->dob,
+            'phone'          => $request->phone,
+            'position'       => $request->position,
+            'employment'     => $request->employment,
+            'address'        => $request->address,
+            'city'           => $request->city,
+            'state'          => $request->state,
+            'zip'            => $request->zip,
+            'license_path'   => $licensePath,
+            'resume_path'    => $resumePath,
+            'signature'      => $request->signature, 
+            'terms_accepted' => $request->terms_accepted == '1', 
+        ]);
+
+        // SUCCESS: Clear the attempts so they can apply for other roles if needed
+        RateLimiter::clear($key);
+
+        return response()->json([
+            'message' => "Application submitted successfully",
+            'id'      => $application->id
+        ], 201);
+
+    } catch (ValidationException $e) {
+        // If validation fails, it counts as an attempt
+        RateLimiter::hit($key, 3600); // 1-hour lockout
+        throw $e; // Laravel automatically returns the 422 error for you
+    } catch (\Exception $e) {
+        // If a database or file error occurs, it counts as an attempt
+        RateLimiter::hit($key, 3600);
+        return response()->json([
+            'message' => "An error occurred during submission. Attempts remaining: " . RateLimiter::remaining($key, 3)
+        ], 500);
+}
 }
 }
