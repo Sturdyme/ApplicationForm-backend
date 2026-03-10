@@ -30,4 +30,5 @@ RUN chown -R www-data:www-data /var/www
 
 EXPOSE 80
 
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT
+# Update your CMD to this:
+CMD php artisan config:clear && php artisan storage:link && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT

@@ -37,7 +37,7 @@ class ApplicationController extends Controller
             'city'       => 'required|string',
             'state'      => 'required|string',
             'zip'        => 'required|string',
-            'drivers_license' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'drivers_license' => 'required|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
             'resume_file'     => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'terms_accepted'  => 'required',
             'signature'       => 'required|string' 
