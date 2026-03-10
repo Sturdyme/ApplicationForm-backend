@@ -10,11 +10,10 @@ use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
 {
-  public function store(Request $request)
+public function store(Request $request)
 {
-  $key = 'application-submission:' . $request->ip();
+    $key = 'application-submission:' . $request->ip();
 
-    // 1. Check if they are already locked out
     if (RateLimiter::tooManyAttempts($key, 3)) {
         $seconds = RateLimiter::availableIn($key);
         return response()->json([
@@ -24,7 +23,6 @@ class ApplicationController extends Controller
     }
 
     try {
-        // 2. Validation
         $request->validate([
             'first_name' => 'required|string',
             'last_name'  => 'required|string',
@@ -37,20 +35,23 @@ class ApplicationController extends Controller
             'city'       => 'required|string',
             'state'      => 'required|string',
             'zip'        => 'required|string',
-            'drivers_license' => 'required|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            'drivers_license' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120',
             'resume_file'     => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'terms_accepted'  => 'required',
-            'signature'       => 'required|string' 
+            'signature'       => 'required|file|mimes:png,jpg,jpeg|max:2048' 
         ]);
 
-        // 3. Handle File Uploads
-       $licensePath = $request->file('drivers_license')->store('licenses', 'cloudinary');
+        //  Handle File Uploads (All going to Cloudinary)
+        $licensePath = $request->file('drivers_license')->store('licenses', 'cloudinary');
 
-     $resumePath = $request->hasFile('resume_file') 
-    ? $request->file('resume_file')->store('resumes', 'cloudinary') 
-    : null;
+        $resumePath = $request->hasFile('resume_file') 
+            ? $request->file('resume_file')->store('resumes', 'cloudinary') 
+            : null;
 
-        // 4. Create Record
+        // Handle Signature as a file upload
+        $signaturePath = $request->file('signature')->store('signatures', 'cloudinary');
+
+        //  Create Record
         $application = Application::create([
             'first_name'     => $request->first_name,
             'last_name'      => $request->last_name,
@@ -63,13 +64,12 @@ class ApplicationController extends Controller
             'city'           => $request->city,
             'state'          => $request->state,
             'zip'            => $request->zip,
-            'license_path'   => $licensePath,
-            'resume_path'    => $resumePath,
-            'signature'      => $request->signature, 
+            'license_path'   => $licensePath, 
+            'resume_path'    => $resumePath,  
+            'signature'      => $signaturePath, 
             'terms_accepted' => $request->terms_accepted == '1', 
         ]);
 
-        // SUCCESS: Clear the attempts so they can apply for other roles if needed
         RateLimiter::clear($key);
 
         return response()->json([
@@ -78,15 +78,15 @@ class ApplicationController extends Controller
         ], 201);
 
     } catch (ValidationException $e) {
-        // If validation fails, it counts as an attempt
-        RateLimiter::hit($key, 3600); // 1-hour lockout
-        throw $e; // Laravel automatically returns the 422 error for you
+        RateLimiter::hit($key, 3600);
+        throw $e; 
     } catch (\Exception $e) {
-        // If a database or file error occurs, it counts as an attempt
         RateLimiter::hit($key, 3600);
         return response()->json([
-            'message' => "An error occurred during submission. Attempts remaining: " . RateLimiter::remaining($key, 3)
+            // LOG the error message so you can see it in the console during testing
+            'message' => "Submission error: " . $e->getMessage(),
+            'attempts_remaining' => RateLimiter::remaining($key, 3)
         ], 500);
-}
+    }
 }
 }
